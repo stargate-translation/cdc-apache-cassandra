@@ -280,7 +280,16 @@ public abstract class CommitLogReaderService implements Runnable, AutoCloseable
                 } catch (Throwable e) {
                     // eventually resubmit self after 10s
                     log.error("Task segment={} completed={} syncPosition={} failed, retrying:", segment, completed, syncPosition, e);
-                    pendingTasks.putIfAbsent(segment, this);
+                    pendingTasks.computeIfAbsent(segment, k -> {
+                        // release all permits to avoid blocking retrying that task. Please note that the following code
+                        // path will not be exercised there are other pending tasks for the same segment, in which case,
+                        // that other pending would have its own, unused inflightMessagesSemaphore instance and there
+                        // is no need to reset the semaphore on the current task.
+                        log.debug("Task segment={} resubmitted, all inflightMessagesSemaphore permits will be released", segment);
+                        inflightMessagesSemaphore.release(config.maxInflightMessagesPerTask -
+                                inflightMessagesSemaphore.availablePermits());
+                        return this;
+                    });
                 }
             }
 
@@ -300,7 +309,7 @@ public abstract class CommitLogReaderService implements Runnable, AutoCloseable
         }
 
         public void cleanup(TaskStatus status) {
-            log.debug("Cleanup task={}", this, status);
+            log.debug("Cleanup task={}, status={}", this, status);
             File file = getFile();
             switch (status) {
                 case SUCCESS:
