@@ -102,7 +102,7 @@ dockerCompose {
     environment.put 'CASSANDRA_IMAGE', "${dockerRepo}cassandra:${cassandra4Version}-cdc"
     environment.put 'PULSAR_IMAGE', "${dockerRepo}pulsar:${testPulsarImageTag}-csc"
     waitForTcpPorts = false
-    startedServices = ['cassandra','pulsar']
+    startedServices = ['cassandra','pulsar','http-echo','prometheus','grafana']
 
     stress {
         projectName = "test1"
@@ -113,10 +113,6 @@ dockerCompose {
         projectName = "test1"
         startedServices = ['cassandra-stress']
         scale = ['cassandra-stress': 2]
-    }
-    prometheus {
-        projectName = "test1"
-        startedServices = ['prometheus','grafana']
     }
     elasticsearch {
         projectName = "test1"

@@ -45,29 +45,14 @@ services:
       - '6650:6650'
     command: /bin/bash -c "bin/pulsar standalone -nss"
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.2
-    container_name: elasticsearch
+  # For debugging Pulsar HTTP sink connector
+  # docker logs <container-id> --follow
+  http-echo:
+    image: mendhak/http-https-echo
+    container_name: http-echo
     networks: [ "net1" ]
-    environment:
-      - xpack.security.enabled=false
-      - discovery.type=single-node
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-    cap_add:
-      - IPC_LOCK
-    #volumes:
-    #  - ./elasticsearch-data:/usr/share/elasticsearch/data
     ports:
-      - 9200:9200
-      - 9300:9300
+      - '8088:8080'
 
   prometheus:
     image: prom/prometheus
