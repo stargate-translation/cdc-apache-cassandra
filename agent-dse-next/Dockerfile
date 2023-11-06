@@ -1,4 +1,4 @@
-FROM aymkhalil/dse-next-cdc
+FROM stargateio/dse-next:4.0.11-45d4657e507e
 ARG COMMITMOG_SYNC_PERIOD_IN_MS
 ARG CDC_TOTAL_SPACE_IN_MB
 
@@ -6,7 +6,7 @@ RUN sed -i 's/cdc_enabled: false/cdc_enabled: true/g' /etc/cassandra/cassandra.y
 RUN sed -i "s/commitlog_sync_period_in_ms: 10000/commitlog_sync_period_in_ms: $COMMITMOG_SYNC_PERIOD_IN_MS/g" /etc/cassandra/cassandra.yaml
 RUN echo "cdc_total_space_in_mb: ${CDC_TOTAL_SPACE_IN_MB}" >> /etc/cassandra/cassandra.yaml
 
-RUN mv /opt/cdc_agent/cdc-agent.jar /cdc-agent.jar
+COPY ./cdc-agent.jar /cdc-agent.jar
 
 # Add cassandra-stress config
 COPY table1.yaml /
